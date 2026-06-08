@@ -24,6 +24,9 @@ training/*.pkl
 training/*.pt
 training/*.bin
 
+# SQLite data directory
+data/
+
 # Environment variables
 .env
 .env.*
