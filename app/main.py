@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from app.database import Base, engine
 from app.models import Business, BusinessFAQ, Service, Client, Appointment  # noqa: F401 — registers tables
 from app.routers import auth, faq, services, clients, appointments
-from app.routers import businesses
+from app.routers import businesses, chat
 
 Base.metadata.create_all(bind=engine)
 
@@ -21,6 +21,7 @@ app = FastAPI(
 app.include_router(auth.router)
 app.include_router(businesses.router)
 app.include_router(faq.router)
+app.include_router(chat.router)
 app.include_router(services.router)
 app.include_router(clients.router)
 app.include_router(appointments.router)

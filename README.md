@@ -28,10 +28,15 @@ info8665-ai-receptionist/
 │       └── faq.py            # Pydantic request/response schemas
 │
 ├── data-collection/          # Raw datasets and database source files
+│   └── faq_training_data.csv # Labeled FAQ intent training data
 ├── training/                 # Trained model artifacts
-│   └── trained-model-v0.h5
+│   ├── train_faq_classifier.py
+│   └── faq_classifier.joblib
+├── docs/
+│   └── research-faq-chatbot-classifier.md
 ├── dev/
-│   └── dev-run-v0.py         # Execution script (called by orchestrator)
+│   ├── dev-run-v0.py         # Execution script (called by orchestrator)
+│   └── seed.py               # Seed sample businesses and FAQs
 └── documentation/            # Project documentation
     ├── api-contract.md       # Human-readable API design contract
     └── openapi.json          # Machine-generated OpenAPI 3.1.0 spec
@@ -124,6 +129,12 @@ curl http://localhost:8000/api/faq/ \
 | `PUT` | `/api/faq/{id}/` | JWT | Full update of a FAQ item |
 | `DELETE` | `/api/faq/{id}/` | JWT | Delete a FAQ item |
 
+### FAQ Chatbot
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/api/businesses/{business_id}/chat/` | JWT | Ask the FAQ chatbot a question |
+
 ### Root
 
 | Method | Path | Auth | Description |
@@ -156,14 +167,32 @@ curl -X POST http://localhost:8000/api/faq/ \
 }
 ```
 
----
+### Example — Ask the FAQ chatbot
 
-## Environment Variables
+```bash
+curl -X POST http://localhost:8000/api/businesses/1/chat/ \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "What are your business hours?"}'
+```
+
+```json
+{
+  "answer": "We are open Monday to Friday, 9 AM to 6 PM, and Saturday 10 AM to 4 PM.",
+  "matched_question": "What are your business hours?",
+  "category": "hours",
+  "confidence": 0.87,
+  "fallback": false
+}
+```
+
+---
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SQLITE_DB_PATH` | `./data/receptionist.db` | Path to the SQLite database file |
 | `JWT_SECRET_KEY` | `dev-secret-change-in-production` | Secret key for signing JWT tokens |
+| `FAQ_MODEL_PATH` | `./training/faq_classifier.joblib` | Path to the trained FAQ classifier model |
 
 Copy `.env.example` to `.env` to customise locally.
 
@@ -173,9 +202,15 @@ Copy `.env.example` to `.env` to customise locally.
 
 `orchestrator.ipynb` drives the full ML pipeline:
 
-1. **Load data** — reads datasets from `data-collection/`
-2. **Train & save** — outputs model artifacts to `training/trained-model-v0.h5`
+1. **Load data** — reads `data-collection/faq_training_data.csv`
+2. **Train & save** — trains a TF-IDF + LogisticRegression classifier and saves to `training/faq_classifier.joblib`
 3. **Execute** — calls `dev/dev-run-v0.py` to start the API server
+
+You can also train the model directly:
+
+```bash
+python training/train_faq_classifier.py
+```
 
 ---
 
