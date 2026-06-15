@@ -1,6 +1,6 @@
 # INFO8665 — AI Receptionist
 
-A FastAPI-based AI receptionist service with SQLite persistence, JWT authentication, Swagger UI, and Docker Compose support.
+A FastAPI-based AI receptionist service with a TF-IDF FAQ chatbot, Next.js chat UI, SQLite persistence, JWT authentication, Swagger UI, and Docker Compose support.
 
 ---
 
@@ -23,12 +23,25 @@ info8665-ai-receptionist/
 │   │   └── faq.py            # FAQ ORM model
 │   ├── routers/
 │   │   ├── auth.py           # POST /auth/token — dev token issuer
-│   │   └── faq.py            # FAQ Knowledge Base CRUD routes
-│   └── schemas/
-│       └── faq.py            # Pydantic request/response schemas
+│   │   ├── faq.py            # FAQ Knowledge Base CRUD routes
+│   │   └── chat.py           # POST /api/businesses/{id}/chat/ — FAQ chatbot
+│   ├── schemas/
+│   │   ├── faq.py            # Pydantic request/response schemas
+│   │   └── chat.py           # ChatRequest / ChatResponse schemas
+│   └── services/
+│       └── faq_classifier.py # TF-IDF inference service
+│
+├── frontend/                 # Next.js 16 chat UI (shadcn/ui)
+│   ├── src/
+│   │   ├── app/              # App Router (layout, page)
+│   │   ├── components/chat/  # ChatPage, BusinessSelector, MessageBubble, etc.
+│   │   ├── hooks/            # useBusinesses, useChat
+│   │   └── lib/api/          # auth, client, businesses, chat fetch helpers
+│   ├── .env.local            # NEXT_PUBLIC_API_URL=http://localhost:8000
+│   └── package.json
 │
 ├── data-collection/          # Raw datasets and database source files
-│   └── faq_training_data.csv # Labeled FAQ intent training data
+│   └── faq_training_data.csv # Labeled FAQ intent training data (86 examples, 6 categories)
 ├── training/                 # Trained model artifacts
 │   ├── train_faq_classifier.py
 │   └── faq_classifier.joblib
@@ -49,9 +62,10 @@ info8665-ai-receptionist/
 ### Prerequisites
 
 - Python 3.11+
+- Node.js 18+
 - Docker Desktop (for containerised run)
 
-### Local Development
+### Run the backend
 
 ```bash
 # 1. Create and activate virtual environment
@@ -68,6 +82,16 @@ uvicorn app.main:app --reload
 The API is available at `http://localhost:8000`.  
 Swagger UI: `http://localhost:8000/docs`  
 ReDoc: `http://localhost:8000/redoc`
+
+### Run the frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000`, click **Connect**, select a business, and start chatting.
 
 ### Docker Compose
 
@@ -218,4 +242,6 @@ python training/train_faq_classifier.py
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 0.2.0 | 2026-06-15 | Next.js chat UI with shadcn/ui, auth gate, business selector, confidence/category metadata |
+| 0.1.1 | 2026-06-15 | TF-IDF FAQ chatbot classifier and `/chat/` endpoint |
 | 0.1.0 | 2026-06-08 | FAQ Knowledge Base CRUD, JWT auth, Docker Compose, SQLite |
