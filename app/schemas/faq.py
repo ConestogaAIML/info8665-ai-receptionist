@@ -2,9 +2,10 @@ from datetime import datetime
 from pydantic import BaseModel, field_validator
 
 
-class FAQCreate(BaseModel):
+class BusinessFAQCreate(BaseModel):
     question: str
     answer: str
+    category: str = ""
     tags: list[str] = []
     is_active: bool = True
 
@@ -13,7 +14,8 @@ class FAQCreate(BaseModel):
             "examples": [
                 {
                     "question": "What are your business hours?",
-                    "answer": "We are open Monday to Friday, 9 AM to 5 PM.",
+                    "answer": "We are open Monday to Friday, 9 AM to 6 PM, and Saturday 10 AM to 4 PM.",
+                    "category": "hours",
                     "tags": ["hours", "general"],
                     "is_active": True,
                 }
@@ -22,17 +24,20 @@ class FAQCreate(BaseModel):
     }
 
 
-class FAQUpdate(BaseModel):
+class BusinessFAQUpdate(BaseModel):
     question: str
     answer: str
+    category: str = ""
     tags: list[str] = []
     is_active: bool = True
 
 
-class FAQResponse(BaseModel):
+class BusinessFAQResponse(BaseModel):
     id: int
+    business_id: int
     question: str
     answer: str
+    category: str
     tags: list[str]
     is_active: bool
     created_at: datetime
@@ -48,6 +53,6 @@ class FAQResponse(BaseModel):
         return v
 
 
-class FAQListResponse(BaseModel):
+class BusinessFAQListResponse(BaseModel):
     count: int
-    results: list[FAQResponse]
+    results: list[BusinessFAQResponse]

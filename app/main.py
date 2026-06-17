@@ -1,7 +1,18 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from app.database import Base, engine
-from app.routers import appointment_prediction, faq, auth
+from app.models import Business, BusinessFAQ, Service, Client, Appointment  # noqa: F401 — registers tables
+from app.routers import (
+    appointment_prediction,
+    appointments,
+    auth,
+    businesses,
+    chat,
+    clients,
+    faq,
+    services,
+)
 
 Base.metadata.create_all(bind=engine)
 
@@ -17,8 +28,21 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
+)
+
 app.include_router(auth.router)
+app.include_router(businesses.router)
 app.include_router(faq.router)
+app.include_router(chat.router)
+app.include_router(services.router)
+app.include_router(clients.router)
+app.include_router(appointments.router)
 app.include_router(appointment_prediction.router)
 
 
