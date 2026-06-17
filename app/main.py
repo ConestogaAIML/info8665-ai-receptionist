@@ -4,6 +4,7 @@ from app.database import Base, engine
 from app.models import Business, BusinessFAQ, Service, Client, Appointment  # noqa: F401 — registers tables
 from app.routers import auth, faq, services, clients, appointments
 from app.routers import businesses, chat
+from app.routers import sentiment_router  # ← sentiment router added
 
 Base.metadata.create_all(bind=engine)
 
@@ -34,7 +35,7 @@ app.include_router(chat.router)
 app.include_router(services.router)
 app.include_router(clients.router)
 app.include_router(appointments.router)
-
+app.include_router(sentiment_router.router)  # ← sentiment added
 
 @app.get("/", tags=["Root"])
 def root():
