@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 
 from app.auth import verify_token
 from app.database import get_db
-from app.models.sentiment import SentimentLog
-from app.schemas.sentiment import (
+from app.models.sentiment_model import SentimentLog
+from app.schemas.sentiment_schemas import (
     CategoryBreakdown,
     CategoryValue,
     EscalationItem,
