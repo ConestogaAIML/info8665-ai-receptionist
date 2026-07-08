@@ -1,11 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+import logging
 from sqlalchemy.orm import Session
 from app.auth import verify_token
 from app.database import get_db
+from app.logging_config import LOGGER_NAME
 from app.models.faq import FAQ
 from app.schemas.faq import FAQCreate, FAQListResponse, FAQResponse, FAQUpdate
 
 router = APIRouter(prefix="/api/faq", tags=["FAQ Knowledge Base"])
+logger = logging.getLogger(LOGGER_NAME)
 
 
 def _tags_to_str(tags: list[str]) -> str:
@@ -26,6 +29,7 @@ def list_faqs(
         for tag in tags:
             q = q.filter(FAQ.tags.contains(tag))
     items = q.order_by(FAQ.created_at.desc()).all()
+    logger.info("FAQ list requested with count=%s", len(items))
     return FAQListResponse(count=len(items), results=items)
 
 
@@ -44,6 +48,7 @@ def create_faq(
     db.add(faq)
     db.commit()
     db.refresh(faq)
+    logger.info("FAQ item created with id=%s", faq.id)
     return faq
 
 
@@ -55,7 +60,9 @@ def get_faq(
 ):
     faq = db.query(FAQ).filter(FAQ.id == faq_id).first()
     if not faq:
+        logger.info("FAQ item lookup missed for id=%s", faq_id)
         raise HTTPException(status_code=404, detail="FAQ item not found")
+    logger.info("FAQ item retrieved with id=%s", faq_id)
     return faq
 
 
@@ -75,6 +82,7 @@ def update_faq(
     faq.is_active = payload.is_active
     db.commit()
     db.refresh(faq)
+    logger.info("FAQ item updated with id=%s", faq_id)
     return faq
 
 
@@ -86,6 +94,8 @@ def delete_faq(
 ):
     faq = db.query(FAQ).filter(FAQ.id == faq_id).first()
     if not faq:
+        logger.info("FAQ item delete missed for id=%s", faq_id)
         raise HTTPException(status_code=404, detail="FAQ item not found")
     db.delete(faq)
     db.commit()
+    logger.info("FAQ item deleted with id=%s", faq_id)
