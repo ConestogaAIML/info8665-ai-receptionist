@@ -261,6 +261,21 @@ You can also train the model directly:
 python training/train_faq_classifier.py
 ```
 
+Export external datasets to local CSV (avoids repeated Hugging Face downloads):
+
+```bash
+pip install fsspec huggingface_hub
+
+# Download Bitext, remap labels, save to data-collection/bitext_mapped.csv
+python training/export_dataset.py bitext
+
+# Merge custom + Bitext into data-collection/faq_training_combined.csv
+python training/export_dataset.py merge
+
+# Train on the combined dataset
+python training/train_faq_classifier.py data-collection/faq_training_combined.csv
+```
+
 ---
 
 ## Changelog
