@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 # In Docker the /data volume is mounted; locally falls back to ./data/
@@ -22,3 +22,21 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def ensure_schema() -> None:
+    """Recreate legacy tables that no longer match the ORM models."""
+    inspector = inspect(engine)
+    if "appointments" not in inspector.get_table_names():
+        Base.metadata.create_all(bind=engine)
+        return
+
+    column_names = {column["name"] for column in inspector.get_columns("appointments")}
+    if "client_id" in column_names and "service_id" in column_names:
+        Base.metadata.create_all(bind=engine)
+        return
+
+    with engine.begin() as conn:
+        conn.execute(text("DROP TABLE appointments"))
+
+    Base.metadata.create_all(bind=engine)

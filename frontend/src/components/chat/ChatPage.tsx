@@ -5,6 +5,7 @@ import { BusinessSelector } from "@/components/chat/BusinessSelector";
 import { FaqDrawer } from "@/components/chat/FaqDrawer";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { ChatInput } from "@/components/chat/ChatInput";
+import { AppNav } from "@/components/layout/AppNav";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useBusinesses } from "@/hooks/useBusinesses";
@@ -119,7 +120,8 @@ export function ChatPage() {
       <header className="flex items-center gap-3 border-b px-4 py-3 shrink-0">
         <BotIcon className="size-5 text-primary" />
         <h1 className="text-base font-semibold">AI Receptionist</h1>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-3">
+          <AppNav />
           <FaqDrawer businessId={selectedBusiness?.id ?? null} />
           <BusinessSelector
             businesses={businesses}
