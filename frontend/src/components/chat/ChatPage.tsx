@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { BusinessSelector } from "@/components/chat/BusinessSelector";
+import { FaqDrawer } from "@/components/chat/FaqDrawer";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { AppNav } from "@/components/layout/AppNav";
@@ -121,6 +122,7 @@ export function ChatPage() {
         <h1 className="text-base font-semibold">AI Receptionist</h1>
         <div className="ml-auto flex items-center gap-3">
           <AppNav />
+          <FaqDrawer businessId={selectedBusiness?.id ?? null} />
           <BusinessSelector
             businesses={businesses}
             selectedId={selectedBusiness?.id ?? null}
