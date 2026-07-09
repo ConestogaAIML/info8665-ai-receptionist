@@ -6,7 +6,7 @@ bcrypt==5.0.0
 certifi==2026.5.20
 cffi==2.0.0
 click==8.4.1
-cryptography==48.0.0
+cryptography==43.0.3
 dnspython==2.8.0
 ecdsa==0.19.2
 email-validator==2.3.0

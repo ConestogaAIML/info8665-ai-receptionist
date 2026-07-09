@@ -100,12 +100,19 @@ Run the API, Streamlit log GUI, and Next.js frontend together:
 ```bash
 # Build and start all services
 docker compose up --build
+```
 
-# Run in background
+| Service | URL |
+|---------|-----|
+| Next.js chat UI | `http://localhost:3000` |
+| FastAPI + Swagger | `http://localhost:8000/docs` |
+| Streamlit log GUI | `http://localhost:8501` |
+
+**Run in the background**
+
+```bash
 docker compose up --build -d
-
-# Stop and remove containers
-docker compose down
+docker compose logs -f          # stream logs
 ```
 
 | Service | URL |
@@ -131,26 +138,27 @@ docker compose up --build
 
 The Docker `api` service starts both FastAPI and the Streamlit GUI in one container:
 
-- Streamlit GUI: `http://localhost:8501`
-- FastAPI API: `http://localhost:8000`
-- Swagger UI: `http://localhost:8000/docs`
-- Log file: `/app/logs/app.log` inside Docker, or `logs/app.log` locally
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `JWT_SECRET_KEY` | `dev-secret-change-in-production` | Secret for signing JWT tokens |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Backend URL the browser calls |
+| `SQLITE_DB_PATH` | `/data/receptionist.db` | SQLite file path inside the container |
 
-Log management uses Python's `logging` library with the required formatter:
-
-```python
-"%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-```
-
-Useful local commands:
+Override at build or runtime:
 
 ```bash
-docker build -t <dockerhub-username>/ai-receptionist-assignment4:latest .
-docker run --rm -p 8000:8000 -p 8501:8501 <dockerhub-username>/ai-receptionist-assignment4:latest
-docker push <dockerhub-username>/ai-receptionist-assignment4:latest
+NEXT_PUBLIC_API_URL=https://api.example.com docker compose up --build
 ```
 
-The recent log entries are also visible through `GET /logs/recent` and in the Streamlit GUI.
+**Push to Docker Hub**
+
+Add an `image:` tag to each service in `docker-compose.yml`, then:
+
+```bash
+docker login
+docker compose build
+docker compose push
+```
 
 ---
 
