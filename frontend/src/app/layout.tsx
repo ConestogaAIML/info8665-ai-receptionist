@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "AI Receptionist",
-  description: "FAQ chatbot for your business",
+  description: "FAQ chatbot and appointment management for your business",
 };
 
 export default function RootLayout({

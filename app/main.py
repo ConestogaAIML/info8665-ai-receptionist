@@ -1,13 +1,24 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from app.database import Base, engine
+from app.database import Base, engine, ensure_schema
 from app.logging_config import configure_application_logging, get_log_file_path, read_recent_log_lines
 from app.models import Business, BusinessFAQ, Service, Client, Appointment  # noqa: F401 — registers tables
 from app.routers import auth, faq, services, clients, appointments
 from app.routers import businesses, chat
+from app.routers import (
+    appointment_prediction,
+    appointments,
+    auth,
+    businesses,
+    chat,
+    clients,
+    dev_seed,
+    faq,
+    services,
+)
 
-Base.metadata.create_all(bind=engine)
+ensure_schema()
 logger = configure_application_logging()
 logger.info("AI Receptionist application logging initialized")
 
@@ -39,6 +50,37 @@ app.include_router(chat.router)
 app.include_router(services.router)
 app.include_router(clients.router)
 app.include_router(appointments.router)
+app.include_router(dev_seed.router)
+app.include_router(appointment_prediction.router)
+app.include_router(appointments.router)
+
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+    openapi_schema["components"]["securitySchemes"] = {
+        "HTTPBearer": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+            "description": (
+                "Call POST /auth/token, copy the access_token value, "
+                "click Authorize above, and paste it here."
+            ),
+        }
+    }
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
 
 
 @app.get("/", tags=["Root"])

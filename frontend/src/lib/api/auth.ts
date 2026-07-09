@@ -10,19 +10,32 @@ export async function getToken(businessId: number): Promise<string> {
   }
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-  const res = await fetch(`${apiUrl}/auth/token?business_id=${businessId}`, {
-    method: "POST",
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
 
-  if (!res.ok) {
-    throw new Error(`Auth failed: ${res.status} ${res.statusText}`);
+  try {
+    const res = await fetch(`${apiUrl}/auth/token?business_id=${businessId}`, {
+      method: "POST",
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      throw new Error(`Auth failed: ${res.status} ${res.statusText}`);
+    }
+
+    const data: TokenResponse = await res.json();
+    TOKEN_CACHE.set(businessId, {
+      token: data.access_token,
+      expiresAt: Date.now() + TTL_MS,
+    });
+
+    return data.access_token;
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(`Auth failed: backend not reachable at ${apiUrl}`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const data: TokenResponse = await res.json();
-  TOKEN_CACHE.set(businessId, {
-    token: data.access_token,
-    expiresAt: Date.now() + TTL_MS,
-  });
-
-  return data.access_token;
 }
