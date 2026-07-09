@@ -1,10 +1,10 @@
 import joblib
 import pandas as pd
 from datetime import datetime, timedelta
+from pathlib import Path
 
-model = joblib.load(
-    "data/model/no_show_model.pkl"
-)
+_MODEL_PATH = Path(__file__).parent.parent / "data" / "model" / "no_show_model.pkl"
+_model = None
 
 DATA_PATH = "data/processed/processed_appointments.csv"
 
@@ -24,6 +24,13 @@ def _get_customer_data(customer_id: int):
     return df[df["customer_id"] == customer_id]
 
 
+def _get_model():
+    global _model
+    if _model is None:
+        _model = joblib.load(_MODEL_PATH)
+    return _model
+
+
 def predict_no_show(
     age,
     waiting_days,
@@ -31,7 +38,7 @@ def predict_no_show(
     hour,
     sms_received
 ):
-    prediction = model.predict_proba([
+    prediction = _get_model().predict_proba([
         [
             age,
             waiting_days,

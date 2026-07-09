@@ -93,45 +93,61 @@ npm run dev
 
 Open `http://localhost:3000`, click **Connect**, select a business, and start chatting.
 
-### Docker Compose
+### Docker (single image — API + frontend + Streamlit)
+
+The Dockerfile builds the Next.js frontend and the FastAPI backend into a single image. One `docker compose up` starts all three services.
+
+**Quick start**
 
 ```bash
-# Build and start
 docker compose up --build
-
-# Run in background
-docker compose up --build -d
-
-# Stop and remove containers
-docker compose down
 ```
 
-The SQLite database is stored in a named Docker volume (`sqlite-data`) and persists across restarts.
+| Service | URL |
+|---------|-----|
+| Next.js chat UI | `http://localhost:3000` |
+| FastAPI + Swagger | `http://localhost:8000/docs` |
+| Streamlit log GUI | `http://localhost:8501` |
 
-### Assignment 4: Log Management GUI
-
-The Docker image starts both the FastAPI service and a Streamlit GUI:
-
-- Streamlit GUI: `http://localhost:8501`
-- FastAPI API: `http://localhost:8000`
-- Swagger UI: `http://localhost:8000/docs`
-- Log file: `/app/logs/app.log` inside Docker, or `logs/app.log` locally
-
-Log management uses Python's `logging` library with the required formatter:
-
-```python
-"%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-```
-
-Useful local commands:
+**Run in the background**
 
 ```bash
-docker build -t <dockerhub-username>/ai-receptionist-assignment4:latest .
-docker run --rm -p 8000:8000 -p 8501:8501 <dockerhub-username>/ai-receptionist-assignment4:latest
-docker push <dockerhub-username>/ai-receptionist-assignment4:latest
+docker compose up --build -d
+docker compose logs -f          # stream logs
 ```
 
-The recent log entries are also visible through `GET /logs/recent` and in the Streamlit GUI.
+**Stop and clean up**
+
+```bash
+docker compose down             # stop containers, keep volumes
+docker compose down -v          # also delete the SQLite volume
+```
+
+The SQLite database is stored in the `sqlite-data` named volume and persists across restarts. Sample businesses and FAQs are seeded automatically on first boot.
+
+**Environment variables**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `JWT_SECRET_KEY` | `dev-secret-change-in-production` | Secret for signing JWT tokens |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Backend URL the browser calls |
+| `SQLITE_DB_PATH` | `/data/receptionist.db` | SQLite file path inside the container |
+
+Override at build or runtime:
+
+```bash
+NEXT_PUBLIC_API_URL=https://api.example.com docker compose up --build
+```
+
+**Push to Docker Hub**
+
+Add an `image:` tag to each service in `docker-compose.yml`, then:
+
+```bash
+docker login
+docker compose build
+docker compose push
+```
 
 ---
 
