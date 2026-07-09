@@ -26,7 +26,11 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ ./app/
+COPY dev/ ./dev/
 COPY scripts/ ./scripts/
+COPY training/faq_classifier.joblib ./training/faq_classifier.joblib
+COPY data/model/ ./data/model/
+COPY data/processed/ ./data/processed/
 COPY streamlit_app.py .
 
 COPY --from=frontend-builder /frontend/public ./frontend/public
