@@ -3,6 +3,9 @@ set -e
 
 mkdir -p /app/logs /data
 
+cd /app
+python scripts/docker_seed.py
+
 uvicorn app.main:app --host 0.0.0.0 --port 8000 &
 
 streamlit run streamlit_app.py \
