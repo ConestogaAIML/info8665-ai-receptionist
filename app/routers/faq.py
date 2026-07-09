@@ -1,7 +1,11 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+
 from app.auth import verify_token
 from app.database import get_db
+from app.logging_config import LOGGER_NAME
 from app.models.business import Business
 from app.models.faq import BusinessFAQ
 from app.schemas.faq import (
@@ -15,6 +19,7 @@ router = APIRouter(
     prefix="/api/businesses/{business_id}/faqs",
     tags=["Business FAQs"],
 )
+logger = logging.getLogger(LOGGER_NAME)
 
 
 def _get_business_or_404(business_id: int, db: Session) -> Business:
@@ -47,6 +52,7 @@ def list_faqs(
     if is_active is not None:
         q = q.filter(BusinessFAQ.is_active == is_active)
     items = q.order_by(BusinessFAQ.created_at.desc()).all()
+    logger.info("FAQ list requested for business_id=%s with count=%s", business_id, len(items))
     return BusinessFAQListResponse(count=len(items), results=items)
 
 
@@ -74,6 +80,7 @@ def create_faq(
     db.add(faq)
     db.commit()
     db.refresh(faq)
+    logger.info("FAQ item created with id=%s for business_id=%s", faq.id, business_id)
     return faq
 
 
@@ -95,7 +102,9 @@ def get_faq(
         .first()
     )
     if not faq:
+        logger.info("FAQ item lookup missed for business_id=%s id=%s", business_id, faq_id)
         raise HTTPException(status_code=404, detail="FAQ not found")
+    logger.info("FAQ item retrieved with id=%s for business_id=%s", faq_id, business_id)
     return faq
 
 
@@ -126,6 +135,7 @@ def update_faq(
     faq.is_active = payload.is_active
     db.commit()
     db.refresh(faq)
+    logger.info("FAQ item updated with id=%s for business_id=%s", faq_id, business_id)
     return faq
 
 
@@ -143,6 +153,8 @@ def delete_faq(
         .first()
     )
     if not faq:
+        logger.info("FAQ item delete missed for business_id=%s id=%s", business_id, faq_id)
         raise HTTPException(status_code=404, detail="FAQ not found")
     db.delete(faq)
     db.commit()
+    logger.info("FAQ item deleted with id=%s for business_id=%s", faq_id, business_id)

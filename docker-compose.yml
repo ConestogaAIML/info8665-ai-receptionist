@@ -3,15 +3,19 @@ services:
     build: .
     ports:
       - "8000:8000"
+      - "8501:8501"
     volumes:
       - sqlite-data:/data
+      - app-logs:/app/logs
     environment:
       - PYTHONUNBUFFERED=1
       - SQLITE_DB_PATH=/data/receptionist.db
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-dev-secret-change-in-production}
+      - LOG_FILE_PATH=/app/logs/app.log
+      - API_BASE_URL=http://127.0.0.1:8000
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/receptionist/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -19,3 +23,4 @@ services:
 
 volumes:
   sqlite-data:
+  app-logs:

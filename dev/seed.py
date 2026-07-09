@@ -12,10 +12,10 @@ import os
 # Allow running from the project root without installing the package
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.database import Base, SessionLocal, engine
-from app.models import Business, BusinessFAQ  # noqa: F401 — registers all tables
+from app.database import Base, SessionLocal, engine, ensure_schema
+from app.models import Business, BusinessFAQ, Client, Service, Appointment  # noqa: F401
 
-Base.metadata.create_all(bind=engine)
+ensure_schema()
 
 # ---------------------------------------------------------------------------
 # Seed data
@@ -174,6 +174,50 @@ BUSINESSES = [
     },
 ]
 
+CLIENTS = [
+    {
+        "first_name": "Jane",
+        "last_name": "Doe",
+        "email": "jane.doe@example.com",
+        "phone": "519-555-0100",
+        "notes": "Prefers morning appointments.",
+    },
+    {
+        "first_name": "Michael",
+        "last_name": "Chen",
+        "email": "michael.chen@example.com",
+        "phone": "519-555-0101",
+        "notes": "Allergic to certain hair dyes.",
+    },
+]
+
+SERVICES = [
+    {
+        "name": "Classic Haircut",
+        "description": "Wash, cut, and style.",
+        "duration_minutes": 45,
+        "price": 35.00,
+        "category": "Hair",
+        "is_active": True,
+    },
+    {
+        "name": "Colour & Highlights",
+        "description": "Full colour or partial highlights.",
+        "duration_minutes": 120,
+        "price": 95.00,
+        "category": "Hair",
+        "is_active": True,
+    },
+    {
+        "name": "Swedish Massage",
+        "description": "60-minute relaxation massage.",
+        "duration_minutes": 60,
+        "price": 80.00,
+        "category": "Spa",
+        "is_active": True,
+    },
+]
+
 # ---------------------------------------------------------------------------
 # Insert helpers
 # ---------------------------------------------------------------------------
@@ -227,6 +271,92 @@ def seed():
         db.close()
 
 
+def seed_appointments():
+    from datetime import date, timedelta
+
+    db = SessionLocal()
+    try:
+        clients_added = 0
+        services_added = 0
+        appointments_added = 0
+        client_records = []
+
+        for data in CLIENTS:
+            existing = db.query(Client).filter(Client.email == data["email"]).first()
+            if existing:
+                client_records.append(existing)
+                print(f"  [skip] Client already exists: {data['email']}")
+                continue
+            client = Client(**data)
+            db.add(client)
+            db.flush()
+            client_records.append(client)
+            clients_added += 1
+            print(f"  [add]  Client: {data['first_name']} {data['last_name']}")
+
+        service_records = []
+        for data in SERVICES:
+            existing = db.query(Service).filter(Service.name == data["name"]).first()
+            if existing:
+                service_records.append(existing)
+                print(f"  [skip] Service already exists: {data['name']}")
+                continue
+            service = Service(**data)
+            db.add(service)
+            db.flush()
+            service_records.append(service)
+            services_added += 1
+            print(f"  [add]  Service: {data['name']}")
+
+        if client_records and service_records:
+            sample_date = (date.today() + timedelta(days=1)).isoformat()
+            exists = (
+                db.query(Appointment)
+                .filter(
+                    Appointment.client_id == client_records[0].id,
+                    Appointment.appointment_date == sample_date,
+                )
+                .first()
+            )
+            if not exists:
+                db.add(
+                    Appointment(
+                        client_id=client_records[0].id,
+                        service_id=service_records[0].id,
+                        appointment_date=sample_date,
+                        appointment_time="10:00",
+                        status="scheduled",
+                        notes="Sample booking from seed script.",
+                    )
+                )
+                appointments_added += 1
+                print(f"  [add]  Appointment: {sample_date} 10:00")
+
+        db.commit()
+        print(
+            f"\nDone — added {clients_added} client(s), {services_added} service(s), "
+            f"{appointments_added} appointment(s)."
+        )
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Seed the AI Receptionist database.")
+    parser.add_argument(
+        "--appointments",
+        action="store_true",
+        help="Also seed demo clients, services, and a sample appointment.",
+    )
+    args = parser.parse_args()
+
     print("Seeding database...\n")
     seed()
+    if args.appointments:
+        print("\nSeeding appointment demo data...\n")
+        seed_appointments()

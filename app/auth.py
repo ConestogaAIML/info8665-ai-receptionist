@@ -8,7 +8,12 @@ SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "dev-secret-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-bearer_scheme = HTTPBearer()
+bearer_scheme = HTTPBearer(
+    description=(
+        "JWT from POST /auth/token. Copy only the access_token value "
+        "(do not include 'Bearer ')."
+    ),
+)
 
 
 def create_access_token(data: dict) -> str:

@@ -108,6 +108,31 @@ docker compose down
 
 The SQLite database is stored in a named Docker volume (`sqlite-data`) and persists across restarts.
 
+### Assignment 4: Log Management GUI
+
+The Docker image starts both the FastAPI service and a Streamlit GUI:
+
+- Streamlit GUI: `http://localhost:8501`
+- FastAPI API: `http://localhost:8000`
+- Swagger UI: `http://localhost:8000/docs`
+- Log file: `/app/logs/app.log` inside Docker, or `logs/app.log` locally
+
+Log management uses Python's `logging` library with the required formatter:
+
+```python
+"%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+```
+
+Useful local commands:
+
+```bash
+docker build -t <dockerhub-username>/ai-receptionist-assignment4:latest .
+docker run --rm -p 8000:8000 -p 8501:8501 <dockerhub-username>/ai-receptionist-assignment4:latest
+docker push <dockerhub-username>/ai-receptionist-assignment4:latest
+```
+
+The recent log entries are also visible through `GET /logs/recent` and in the Streamlit GUI.
+
 ---
 
 ## Authentication
@@ -234,6 +259,21 @@ You can also train the model directly:
 
 ```bash
 python training/train_faq_classifier.py
+```
+
+Export external datasets to local CSV (avoids repeated Hugging Face downloads):
+
+```bash
+pip install fsspec huggingface_hub
+
+# Download Bitext, remap labels, save to data-collection/bitext_mapped.csv
+python training/export_dataset.py bitext
+
+# Merge custom + Bitext into data-collection/faq_training_combined.csv
+python training/export_dataset.py merge
+
+# Train on the combined dataset
+python training/train_faq_classifier.py data-collection/faq_training_combined.csv
 ```
 
 ---

@@ -3,6 +3,7 @@ Train a TF-IDF + LogisticRegression FAQ intent classifier.
 
 Usage:
     python training/train_faq_classifier.py
+    python training/train_faq_classifier.py data-collection/faq_training_combined.csv
 """
 
 from __future__ import annotations
@@ -67,6 +68,7 @@ def train(csv_path: Path, model_out: Path) -> Pipeline:
     y_pred = pipeline.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
 
+    print(f"Dataset:          {csv_path}")
     print(f"Training samples: {len(X_train)}")
     print(f"Test samples:     {len(X_test)}")
     print(f"Accuracy:         {accuracy:.3f}")
