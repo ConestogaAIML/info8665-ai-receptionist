@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from app.database import Base, engine
+from app.logging_config import configure_application_logging, get_log_file_path, read_recent_log_lines
 from app.models import Business, BusinessFAQ, Service, Client, Appointment  # noqa: F401 — registers tables
 from app.routers import (
     appointment_prediction,
@@ -15,6 +16,8 @@ from app.routers import (
 )
 
 Base.metadata.create_all(bind=engine)
+logger = configure_application_logging()
+logger.info("AI Receptionist application logging initialized")
 
 app = FastAPI(
     title="AI Receptionist",
@@ -27,6 +30,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+app.state.logger = logger
 
 app.add_middleware(
     CORSMiddleware,
@@ -76,4 +80,14 @@ app.openapi = custom_openapi
 
 @app.get("/", tags=["Root"])
 def root():
+    logger.info("Root status endpoint requested")
     return {"message": "AI Receptionist is running. Visit /docs for the API."}
+
+
+@app.get("/logs/recent", tags=["Log Management"])
+def recent_logs(limit: int = 50):
+    logger.info("Recent log entries requested")
+    return {
+        "log_file": str(get_log_file_path()),
+        "lines": read_recent_log_lines(limit=limit),
+    }
