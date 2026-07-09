@@ -29,15 +29,14 @@ COPY app/ ./app/
 COPY dev/ ./dev/
 COPY scripts/ ./scripts/
 COPY training/faq_classifier.joblib ./training/faq_classifier.joblib
-COPY data/model/ ./data/model/
-COPY data/processed/ ./data/processed/
 COPY streamlit_app.py .
 
 COPY --from=frontend-builder /frontend/public ./frontend/public
 COPY --from=frontend-builder /frontend/.next/standalone ./frontend/
 COPY --from=frontend-builder /frontend/.next/static ./frontend/.next/static
 
-RUN mkdir -p /data /app/logs && chmod +x /app/scripts/start.sh
+RUN mkdir -p /data /app/logs /app/data/model /app/data/processed \
+    && chmod +x /app/scripts/start.sh
 
 EXPOSE 8000
 EXPOSE 8501
