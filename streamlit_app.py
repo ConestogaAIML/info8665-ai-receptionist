@@ -5,6 +5,8 @@ import streamlit as st
 
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
+BUSINESS_ID = int(os.getenv("BUSINESS_ID", "1"))
+FAQS_URL = f"/api/businesses/{BUSINESS_ID}/faqs"
 
 
 st.set_page_config(page_title="AI Receptionist", page_icon="☎", layout="wide")
@@ -57,6 +59,7 @@ st.subheader("FAQ Knowledge Base")
 with st.form("create_faq"):
     question = st.text_input("Question", "What are your business hours?")
     answer = st.text_area("Answer", "We are open Monday to Friday, 9 AM to 5 PM.")
+    category = st.text_input("Category", "hours")
     tags = st.text_input("Tags", "hours,general")
     submitted = st.form_submit_button("Create FAQ")
 
@@ -64,12 +67,13 @@ if submitted:
     payload = {
         "question": question,
         "answer": answer,
+        "category": category,
         "tags": [tag.strip() for tag in tags.split(",") if tag.strip()],
         "is_active": True,
     }
     try:
         response = requests.post(
-            api_url("/api/faq/"),
+            api_url(f"{FAQS_URL}/"),
             json=payload,
             headers=auth_headers(),
             timeout=10,
@@ -82,7 +86,7 @@ if submitted:
         st.error(f"FAQ creation failed: {exc}")
 
 try:
-    response = requests.get(api_url("/api/faq/"), headers=auth_headers(), timeout=10)
+    response = requests.get(api_url(f"{FAQS_URL}/"), headers=auth_headers(), timeout=10)
     response.raise_for_status()
     data = response.json()
     st.metric("FAQ Items", data["count"])

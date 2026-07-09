@@ -42,5 +42,9 @@ logs/
 .idea/
 
 
-# 
+#
 .claude/
+
+# Next.js frontend
+frontend/node_modules/
+frontend/.next/
