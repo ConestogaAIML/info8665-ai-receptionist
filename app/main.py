@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 from app.database import Base, engine
+from app.logging_config import configure_application_logging, get_log_file_path, read_recent_log_lines
 from app.routers import faq, auth
 
 Base.metadata.create_all(bind=engine)
+logger = configure_application_logging()
+logger.info("AI Receptionist application logging initialized")
 
 app = FastAPI(
     title="AI Receptionist",
@@ -15,6 +18,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+app.state.logger = logger
 
 app.include_router(auth.router)
 app.include_router(faq.router)
@@ -22,4 +26,14 @@ app.include_router(faq.router)
 
 @app.get("/", tags=["Root"])
 def root():
+    logger.info("Root status endpoint requested")
     return {"message": "AI Receptionist is running. Visit /docs for the API."}
+
+
+@app.get("/logs/recent", tags=["Log Management"])
+def recent_logs(limit: int = 50):
+    logger.info("Recent log entries requested")
+    return {
+        "log_file": str(get_log_file_path()),
+        "lines": read_recent_log_lines(limit=limit),
+    }
