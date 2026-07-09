@@ -93,12 +93,10 @@ npm run dev
 
 Open `http://localhost:3000`, click **Connect**, select a business, and start chatting.
 
-### Docker Compose (full stack)
-
-Run the API, Streamlit log GUI, and Next.js frontend together:
+### Docker Compose
 
 ```bash
-# Build and start all services
+# Build and start
 docker compose up --build
 
 # Run in background
@@ -108,28 +106,11 @@ docker compose up --build -d
 docker compose down
 ```
 
-| Service | URL |
-|---------|-----|
-| Next.js UI (chat + appointments) | http://localhost:3000 |
-| FastAPI API | http://localhost:8000 |
-| Swagger UI | http://localhost:8000/docs |
-| Streamlit log GUI | http://localhost:8501 |
-
-On startup the API container automatically seeds sample businesses, FAQs, clients, services, and one appointment.
-
 The SQLite database is stored in a named Docker volume (`sqlite-data`) and persists across restarts.
-
-Optional environment variables (see `.env.example`):
-
-```bash
-cp .env.example .env
-# edit JWT_SECRET_KEY if needed
-docker compose up --build
-```
 
 ### Assignment 4: Log Management GUI
 
-The Docker `api` service starts both FastAPI and the Streamlit GUI in one container:
+The Docker image starts both the FastAPI service and a Streamlit GUI:
 
 - Streamlit GUI: `http://localhost:8501`
 - FastAPI API: `http://localhost:8000`
