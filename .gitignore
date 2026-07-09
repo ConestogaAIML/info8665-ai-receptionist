@@ -27,6 +27,9 @@ training/*.bin
 # SQLite data directory
 data/
 
+# Runtime log files
+logs/
+
 # Environment variables
 .env
 .env.*

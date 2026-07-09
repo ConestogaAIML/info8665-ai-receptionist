@@ -33,6 +33,23 @@ export interface BusinessListResponse {
   results: Business[];
 }
 
+export interface BusinessFAQ {
+  id: number;
+  business_id: number;
+  question: string;
+  answer: string;
+  category: string;
+  tags: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BusinessFAQListResponse {
+  count: number;
+  results: BusinessFAQ[];
+}
+
 export interface TokenResponse {
   access_token: string;
   token_type: string;
