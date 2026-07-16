@@ -20,10 +20,10 @@ stages:
     pool:
       vmImage: ubuntu-latest
     steps:
-    - task: Docker@2
+    - task: PowerShell@2
       displayName: Build an image
       inputs:
-        command: build
-        dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
-        tags: |
-          $(tag)
+        targetType: inline
+        script: |
+          docker build -t $(tag) .
+          docker push $(tag)
