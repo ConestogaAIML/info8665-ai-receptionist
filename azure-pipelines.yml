@@ -9,6 +9,7 @@ resources:
 - repo: self
 
 variables:
+  imageName: 'ai-receptionist-assignment5'
   tag: '$(Build.BuildId)'
 
 stages:
@@ -25,5 +26,4 @@ stages:
       inputs:
         targetType: inline
         script: |
-          docker build -t $(tag) .
-          docker push $(tag)
+          docker build -t $(imageName):$(tag) .
