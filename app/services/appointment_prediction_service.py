@@ -3,20 +3,28 @@ import pandas as pd
 from datetime import datetime, timedelta
 from pathlib import Path
 
-_MODEL_PATH = Path(__file__).parent.parent / "data" / "model" / "no_show_model.pkl"
+from app.config import get_settings
+from app.logging_config import configure_application_logging
+
+logger = configure_application_logging()
 _model = None
-
-DATA_PATH = "data/processed/processed_appointments.csv"
-
 booked_appointments = []
 
 
+def _data_path() -> str:
+    return get_settings().processed_data_path
+
+
+def _model_path() -> Path:
+    return Path(get_settings().model_path)
+
+
 def load_appointments():
-    return pd.read_csv(DATA_PATH)
+    return pd.read_csv(_data_path())
 
 
 def _get_customer_data(customer_id: int):
-    df = pd.read_csv(DATA_PATH)
+    df = pd.read_csv(_data_path())
 
     if "PatientId" in df.columns:
         return df[df["PatientId"] == customer_id]
@@ -27,7 +35,14 @@ def _get_customer_data(customer_id: int):
 def _get_model():
     global _model
     if _model is None:
-        _model = joblib.load(_MODEL_PATH)
+        path = _model_path()
+        logger.info(
+            "Loading no-show model for experiment %s v%s from %s",
+            get_settings().experiment_name,
+            get_settings().experiment_version,
+            path,
+        )
+        _model = joblib.load(path)
     return _model
 
 
@@ -101,6 +116,13 @@ def find_preferred_slot(age, waiting_days, sms_received):
 
 
 def get_appointment_recommendation(age, waiting_days, sms_received):
+    settings = get_settings()
+    logger.info(
+        "Prediction request experiment=%s v%s features=%s",
+        settings.experiment_name,
+        settings.experiment_version,
+        settings.feature_names,
+    )
     preferred_hour, preferred_weekday, no_show_risk = find_preferred_slot(
         age,
         waiting_days,
@@ -112,6 +134,8 @@ def get_appointment_recommendation(age, waiting_days, sms_received):
         "preferred_weekday": format_weekday(preferred_weekday),
         "no_show_risk": float(round(no_show_risk, 2)),
         "recommendation": recommendation_for_risk(no_show_risk),
+        "experiment_name": settings.experiment_name,
+        "experiment_version": settings.experiment_version,
     }
 
 

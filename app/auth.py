@@ -1,10 +1,16 @@
-import os
 from datetime import datetime, timedelta, timezone
+
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "dev-secret-change-in-production")
+from app.config import get_settings
+from app.logging_config import configure_application_logging
+
+settings = get_settings()
+logger = configure_application_logging()
+
+SECRET_KEY = settings.jwt_secret_key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
@@ -14,6 +20,8 @@ bearer_scheme = HTTPBearer(
         "(do not include 'Bearer ')."
     ),
 )
+
+logger.info("JWT auth configured (secret loaded from environment)")
 
 
 def create_access_token(data: dict) -> str:
@@ -28,6 +36,7 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_sche
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
     except JWTError:
+        logger.warning("Invalid or expired JWT presented to API")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",

@@ -1,7 +1,7 @@
 import logging
-import os
 from pathlib import Path
 
+from app.config import get_settings
 
 LOGGER_NAME = "ai_receptionist"
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -9,22 +9,27 @@ DEFAULT_LOG_FILE = Path("logs") / "app.log"
 
 
 def get_log_file_path() -> Path:
-    configured_path = os.getenv("LOG_FILE_PATH")
+    settings = get_settings()
+    configured_path = settings.log_file_path
     if configured_path:
         return Path(configured_path)
     logger = logging.getLogger(LOGGER_NAME)
     active_path = getattr(logger, "_assignment4_log_file", None)
     if active_path:
         return Path(active_path)
-    return Path(os.getenv("LOG_FILE_PATH", str(DEFAULT_LOG_FILE)))
+    return DEFAULT_LOG_FILE
 
 
 def configure_application_logging() -> logging.Logger:
+    settings = get_settings()
     log_file = get_log_file_path()
     log_file.parent.mkdir(parents=True, exist_ok=True)
 
+    level_name = settings.log_level.upper()
+    level = getattr(logging, level_name, logging.INFO)
+
     logger = logging.getLogger(LOGGER_NAME)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(level)
     logger.propagate = False
 
     formatter = logging.Formatter(LOG_FORMAT)
@@ -35,12 +40,12 @@ def configure_application_logging() -> logging.Logger:
             handler.close()
 
     file_handler = logging.FileHandler(log_file, encoding="utf-8")
-    file_handler.setLevel(logging.INFO)
+    file_handler.setLevel(level)
     file_handler.setFormatter(formatter)
     file_handler._assignment4_handler = True
 
     stream_handler = logging.StreamHandler()
-    stream_handler.setLevel(logging.INFO)
+    stream_handler.setLevel(level)
     stream_handler.setFormatter(formatter)
     stream_handler._assignment4_handler = True
 

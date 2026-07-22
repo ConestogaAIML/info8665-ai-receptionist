@@ -30,9 +30,10 @@ data/
 # Runtime log files
 logs/
 
-# Environment variables
+# Environment variables (keep .env.example tracked for secrets documentation)
 .env
 .env.*
+!.env.example
 
 # macOS
 .DS_Store

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
+from app.config import get_settings
 from app.database import Base, engine, ensure_schema
 from app.logging_config import configure_application_logging, get_log_file_path, read_recent_log_lines
 from app.models import Business, BusinessFAQ, Service, Client, Appointment  # noqa: F401 — registers tables
@@ -18,7 +19,22 @@ from app.routers import (
 
 ensure_schema()
 logger = configure_application_logging()
+settings = get_settings()
 logger.info("AI Receptionist application logging initialized")
+logger.info(
+    "Secrets management active: experiment=%s version=%s db_engine=%s host=%s",
+    settings.experiment_name,
+    settings.experiment_version,
+    settings.db_engine,
+    settings.db_hostname,
+)
+logger.info(
+    "ML secrets loaded: features=%s epochs=%s n_estimators=%s expected_accuracy=%.3f",
+    settings.feature_names,
+    settings.ml_epochs,
+    settings.ml_n_estimators,
+    settings.expected_accuracy,
+)
 
 app = FastAPI(
     title="AI Receptionist",
@@ -84,6 +100,13 @@ app.openapi = custom_openapi
 def root():
     logger.info("Root status endpoint requested")
     return {"message": "AI Receptionist is running. Visit /docs for the API."}
+
+
+@app.get("/config/public", tags=["Secrets Management"])
+def public_config():
+    """Expose non-secret configuration for DevOps verification (no passwords)."""
+    logger.info("Public config endpoint requested")
+    return get_settings().safe_summary()
 
 
 @app.get("/logs/recent", tags=["Log Management"])
