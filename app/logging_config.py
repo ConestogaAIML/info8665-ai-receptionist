@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 
 from app.config import get_settings
@@ -9,8 +10,7 @@ DEFAULT_LOG_FILE = Path("logs") / "app.log"
 
 
 def get_log_file_path() -> Path:
-    settings = get_settings()
-    configured_path = settings.log_file_path
+    configured_path = os.environ.get("LOG_FILE_PATH") or get_settings().log_file_path
     if configured_path:
         return Path(configured_path)
     logger = logging.getLogger(LOGGER_NAME)

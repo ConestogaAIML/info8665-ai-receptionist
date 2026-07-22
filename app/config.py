@@ -100,7 +100,6 @@ class Settings:
             "db_hostname": self.db_hostname,
             "db_port": self.db_port,
             "db_name": self.db_name,
-            "db_username": self.db_username,
             "feature_names": self.feature_names,
             "target_column": self.target_column,
             "ml_n_estimators": self.ml_n_estimators,

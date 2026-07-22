@@ -29,8 +29,6 @@ COPY app/ ./app/
 COPY dev/ ./dev/
 COPY scripts/ ./scripts/
 COPY training/faq_classifier.joblib ./training/faq_classifier.joblib
-COPY data/model/ ./data/model/
-COPY data/processed/ ./data/processed/
 COPY streamlit_app.py .
 COPY .env.example ./.env.example
 
