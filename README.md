@@ -93,12 +93,31 @@ npm run dev
 
 Open `http://localhost:3000`, click **Connect**, select a business, and start chatting.
 
+### Secrets Management (Docker environment variables)
+
+Sensitive and experiment settings are loaded from environment variables (see `.env.example`). Copy and edit before running:
+
+```bash
+cp .env.example .env
+```
+
+| Category | Variables |
+|----------|-----------|
+| Database | `DB_USERNAME`, `DB_PASSWORD`, `DB_HOSTNAME`, `DB_PORT`, `DB_NAME`, `DB_ENGINE` |
+| Auth | `JWT_SECRET_KEY` |
+| EDA features | `FEATURE_NAMES`, `TARGET_COLUMN` |
+| Training | `ML_N_ESTIMATORS`, `ML_MAX_DEPTH`, `ML_EPOCHS`, `ML_TEST_SIZE`, `ML_RANDOM_STATE` |
+| Experiment | `EXPERIMENT_NAME`, `EXPERIMENT_VERSION`, `EXPECTED_ACCURACY` |
+
+Non-secret settings are visible at `GET /config/public` (passwords are never exposed).
+
 ### Docker Compose (full stack)
 
 Run the API, Streamlit log GUI, and Next.js frontend together:
 
 ```bash
 # Build and start all services
+cp .env.example .env   # if you have not already
 docker compose up --build
 ```
 
@@ -107,6 +126,7 @@ docker compose up --build
 | Next.js chat UI | `http://localhost:3000` |
 | FastAPI + Swagger | `http://localhost:8000/docs` |
 | Streamlit log GUI | `http://localhost:8501` |
+| Public config (secrets summary) | `http://localhost:8000/config/public` |
 
 **Run in the background**
 
@@ -115,23 +135,16 @@ docker compose up --build -d
 docker compose logs -f          # stream logs
 ```
 
-| Service | URL |
-|---------|-----|
-| Next.js UI (chat + appointments) | http://localhost:3000 |
-| FastAPI API | http://localhost:8000 |
-| Swagger UI | http://localhost:8000/docs |
-| Streamlit log GUI | http://localhost:8501 |
-
 On startup the API container automatically seeds sample businesses, FAQs, clients, services, and one appointment.
 
 The SQLite database is stored in a named Docker volume (`sqlite-data`) and persists across restarts.
 
-Optional environment variables (see `.env.example`):
+### Publish to Docker Hub
 
 ```bash
-cp .env.example .env
-# edit JWT_SECRET_KEY if needed
-docker compose up --build
+docker build -t <dockerhub-username>/ai-receptionist:latest .
+docker run --rm -p 8000:8000 -p 8501:8501 -p 3000:3000 --env-file .env <dockerhub-username>/ai-receptionist:latest
+docker push <dockerhub-username>/ai-receptionist:latest
 ```
 
 ### Assignment 4: Log Management GUI

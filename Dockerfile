@@ -30,6 +30,7 @@ COPY dev/ ./dev/
 COPY scripts/ ./scripts/
 COPY training/faq_classifier.joblib ./training/faq_classifier.joblib
 COPY streamlit_app.py .
+COPY .env.example ./.env.example
 
 COPY --from=frontend-builder /frontend/public ./frontend/public
 COPY --from=frontend-builder /frontend/.next/standalone ./frontend/
@@ -46,5 +47,9 @@ ENV LOG_FILE_PATH=/app/logs/app.log
 ENV API_BASE_URL=http://127.0.0.1:8000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
+ENV DB_ENGINE=sqlite
+ENV SQLITE_DB_PATH=/data/receptionist.db
+ENV MODEL_PATH=data/model/no_show_model.pkl
+ENV PROCESSED_DATA_PATH=data/processed/processed_appointments.csv
 
 CMD ["/app/scripts/start.sh"]

@@ -129,6 +129,8 @@ export interface PredictionResponse {
   preferred_weekday: string;
   no_show_risk: number;
   recommendation: string;
+  experiment_name?: string | null;
+  experiment_version?: string | null;
 }
 
 export interface AtRiskAppointment {

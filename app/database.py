@@ -1,14 +1,30 @@
-import os
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-# In Docker the /data volume is mounted; locally falls back to ./data/
-_db_path = os.environ.get("SQLITE_DB_PATH", "./data/receptionist.db")
-os.makedirs(os.path.dirname(os.path.abspath(_db_path)), exist_ok=True)
+from app.config import get_settings
+from app.logging_config import configure_application_logging
 
-SQLITE_URL = f"sqlite:///{_db_path}"
+settings = get_settings()
+logger = configure_application_logging()
 
-engine = create_engine(SQLITE_URL, connect_args={"check_same_thread": False})
+if settings.db_engine.lower().startswith("sqlite"):
+    import os
+
+    os.makedirs(os.path.dirname(os.path.abspath(settings.sqlite_db_path)), exist_ok=True)
+
+DATABASE_URL = settings.database_url()
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+
+logger.info(
+    "Database configured engine=%s host=%s port=%s name=%s user=%s",
+    settings.db_engine,
+    settings.db_hostname,
+    settings.db_port,
+    settings.db_name,
+    settings.db_username,
+)
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -40,3 +56,4 @@ def ensure_schema() -> None:
         conn.execute(text("DROP TABLE appointments"))
 
     Base.metadata.create_all(bind=engine)
+    logger.info("Recreated appointments table after legacy schema mismatch")

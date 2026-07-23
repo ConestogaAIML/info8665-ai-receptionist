@@ -41,6 +41,14 @@ with status_col:
     except requests.RequestException as exc:
         st.error(f"API is not reachable: {exc}")
 
+    try:
+        cfg = requests.get(api_url("/config/public"), timeout=10)
+        cfg.raise_for_status()
+        st.subheader("Secrets Management (public)")
+        st.json(cfg.json())
+    except requests.RequestException as exc:
+        st.warning(f"Could not load public config: {exc}")
+
 with log_col:
     st.subheader("Recent Log File Entries")
     try:

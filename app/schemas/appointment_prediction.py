@@ -24,6 +24,8 @@ class PredictionResponse(BaseModel):
     preferred_weekday: str
     no_show_risk: float
     recommendation: str
+    experiment_name: str | None = None
+    experiment_version: str | None = None
 
     model_config = {
         "json_schema_extra": {
@@ -33,6 +35,8 @@ class PredictionResponse(BaseModel):
                     "preferred_weekday": "Tuesday",
                     "no_show_risk": 0.06,
                     "recommendation": "Recommended",
+                    "experiment_name": "appointment-no-show",
+                    "experiment_version": "1.0.0",
                 }
             ]
         }
