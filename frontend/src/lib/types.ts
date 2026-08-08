@@ -55,7 +55,7 @@ export interface TokenResponse {
   token_type: string;
 }
 
-export type AppointmentStatus = "scheduled" | "completed" | "cancelled";
+export type AppointmentStatus = "scheduled" | "completed" | "cancelled" | "no_show";
 
 export interface Appointment {
   id: number;
@@ -122,21 +122,38 @@ export interface PredictionRequest {
   age: number;
   waiting_days: number;
   sms_received: number;
+  client_id?: number | null;
+  client_name?: string | null;
+  save?: boolean;
 }
 
 export interface PredictionResponse {
   preferred_hour: string;
   preferred_weekday: string;
   no_show_risk: number;
+  profile_risk: number;
   recommendation: string;
+  is_high_risk: boolean;
+  is_new_customer: boolean;
+  client_id?: number | null;
+  client_name?: string | null;
+  assessment_id?: number | null;
   experiment_name?: string | null;
   experiment_version?: string | null;
 }
 
 export interface AtRiskAppointment {
-  customer_id: number;
+  assessment_id: number;
+  customer_id: number | null;
+  client_name: string;
   no_show_risk: number;
+  profile_risk: number;
+  is_new_customer: boolean;
   requires_confirmation: boolean;
+  age: number;
+  waiting_days: number;
+  sms_received: number;
+  reason?: string | null;
 }
 
 export interface AtRiskListResponse {

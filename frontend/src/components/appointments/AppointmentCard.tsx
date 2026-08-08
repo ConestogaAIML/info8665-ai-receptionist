@@ -5,6 +5,7 @@ import {
   ScissorsIcon,
   Trash2Icon,
   UserIcon,
+  UserXIcon,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ interface AppointmentCardProps {
   appointment: Appointment;
   onEdit: (appointment: Appointment) => void;
   onDelete: (appointment: Appointment) => void;
+  onMarkNoShow?: (appointment: Appointment) => void;
 }
 
 function formatDate(date: string) {
@@ -42,8 +44,10 @@ export function AppointmentCard({
   appointment,
   onEdit,
   onDelete,
+  onMarkNoShow,
 }: AppointmentCardProps) {
-  const statusStyle = STATUS_STYLES[appointment.status];
+  const statusStyle =
+    STATUS_STYLES[appointment.status] ?? STATUS_STYLES.scheduled;
 
   return (
     <Card className="group border-border/60 bg-card/80 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
@@ -94,6 +98,18 @@ export function AppointmentCard({
             Client #{appointment.client_id}
           </div>
           <div className="flex items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+            {appointment.status === "scheduled" && onMarkNoShow ? (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => onMarkNoShow(appointment)}
+                aria-label="Mark as skipped / no-show"
+                title="Mark as skipped / no-show"
+                className="text-amber-700 hover:text-amber-800"
+              >
+                <UserXIcon className="size-3.5" />
+              </Button>
+            ) : null}
             <Button
               variant="ghost"
               size="icon-sm"

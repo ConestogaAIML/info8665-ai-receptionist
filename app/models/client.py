@@ -25,3 +25,6 @@ class Client(Base):
     appointments: Mapped[list["Appointment"]] = relationship(
         "Appointment", back_populates="client"
     )
+    risk_assessments: Mapped[list["RiskAssessment"]] = relationship(
+        "RiskAssessment", back_populates="client"
+    )

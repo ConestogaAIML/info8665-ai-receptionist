@@ -41,19 +41,21 @@ def get_db():
 
 
 def ensure_schema() -> None:
-    """Recreate legacy tables that no longer match the ORM models."""
+    """Create missing tables and recreate legacy appointments if needed."""
     inspector = inspect(engine)
-    if "appointments" not in inspector.get_table_names():
+    table_names = set(inspector.get_table_names())
+
+    if "appointments" not in table_names:
         Base.metadata.create_all(bind=engine)
         return
 
     column_names = {column["name"] for column in inspector.get_columns("appointments")}
-    if "client_id" in column_names and "service_id" in column_names:
+    if "client_id" not in column_names or "service_id" not in column_names:
+        with engine.begin() as conn:
+            conn.execute(text("DROP TABLE appointments"))
         Base.metadata.create_all(bind=engine)
+        logger.info("Recreated appointments table after legacy schema mismatch")
         return
 
-    with engine.begin() as conn:
-        conn.execute(text("DROP TABLE appointments"))
-
+    # Ensure newer tables (e.g. risk_assessments) exist alongside current schema.
     Base.metadata.create_all(bind=engine)
-    logger.info("Recreated appointments table after legacy schema mismatch")

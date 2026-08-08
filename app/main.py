@@ -4,7 +4,7 @@ from fastapi.openapi.utils import get_openapi
 from app.config import get_settings
 from app.database import Base, engine, ensure_schema
 from app.logging_config import configure_application_logging, get_log_file_path, read_recent_log_lines
-from app.models import Business, BusinessFAQ, Service, Client, Appointment  # noqa: F401 — registers tables
+from app.models import Business, BusinessFAQ, Service, Client, Appointment, RiskAssessment  # noqa: F401 — registers tables
 from app.routers import (
     appointment_prediction,
     appointments,
