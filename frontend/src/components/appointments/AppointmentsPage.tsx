@@ -38,6 +38,7 @@ export function AppointmentsPage() {
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [atRiskCount, setAtRiskCount] = useState(0);
+  const [atRiskRefreshKey, setAtRiskRefreshKey] = useState(0);
   const [isSeeding, setIsSeeding] = useState(false);
   const [seedMessage, setSeedMessage] = useState<string | null>(null);
 
@@ -135,6 +136,32 @@ export function AppointmentsPage() {
     }
   }
 
+  async function handleMarkNoShow(appointment: Appointment) {
+    if (
+      !confirm(
+        `Mark ${appointment.client_name}'s appointment as skipped / no-show?`
+      )
+    ) {
+      return;
+    }
+    setActionError(null);
+    try {
+      await editAppointment(appointment.id, {
+        client_id: appointment.client_id,
+        service_id: appointment.service_id,
+        appointment_date: appointment.appointment_date,
+        appointment_time: appointment.appointment_time,
+        status: "no_show",
+        notes: appointment.notes,
+      });
+      setAtRiskRefreshKey((value) => value + 1);
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Failed to mark appointment as skipped"
+      );
+    }
+  }
+
   if (!connected) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[radial-gradient(circle_at_top,_rgba(139,92,246,0.12),_transparent_35%),linear-gradient(to_bottom,_#fafafa,_#ffffff)] px-4 dark:bg-[radial-gradient(circle_at_top,_rgba(139,92,246,0.18),_transparent_35%),linear-gradient(to_bottom,_#111111,_#0a0a0a)]">
@@ -196,10 +223,6 @@ export function AppointmentsPage() {
                 <span className="hidden sm:inline">Load Sample Data</span>
               </Button>
             ) : null}
-            <Button onClick={openCreateDialog} className="gap-2">
-              <CalendarPlusIcon className="size-4" />
-              <span className="hidden sm:inline">Book Appointment</span>
-            </Button>
           </div>
         </div>
       </header>
@@ -277,8 +300,8 @@ export function AppointmentsPage() {
                 <h3 className="mt-4 text-lg font-medium">No appointments yet</h3>
                 <p className="mt-2 max-w-sm text-sm text-muted-foreground">
                   {needsSampleData
-                    ? "Load sample data first, then book your first appointment."
-                    : "Create your first booking or adjust filters to see existing appointments."}
+                    ? "Load sample data first, then use AI Slot Advisor to predict and book."
+                    : "Use AI Slot Advisor on the right to predict a slot and book automatically."}
                 </p>
                 {needsSampleData ? (
                   <Button onClick={handleLoadSamples} disabled={isSeeding} className="mt-6 gap-2">
@@ -289,12 +312,7 @@ export function AppointmentsPage() {
                     )}
                     Load Sample Data
                   </Button>
-                ) : (
-                  <Button onClick={openCreateDialog} className="mt-6 gap-2">
-                    <CalendarPlusIcon className="size-4" />
-                    Book Appointment
-                  </Button>
-                )}
+                ) : null}
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
@@ -304,6 +322,7 @@ export function AppointmentsPage() {
                     appointment={appointment}
                     onEdit={openEditDialog}
                     onDelete={handleDelete}
+                    onMarkNoShow={handleMarkNoShow}
                   />
                 ))}
               </div>
@@ -312,8 +331,23 @@ export function AppointmentsPage() {
         </div>
 
         <aside className="space-y-4">
-          <PredictionPanel />
-          <AtRiskPanel onCountChange={setAtRiskCount} />
+          <PredictionPanel
+            clients={clients}
+            services={services}
+            onAssessmentSaved={() => {
+              void reloadClients();
+              setAtRiskRefreshKey((value) => value + 1);
+            }}
+            onBooked={() => {
+              void reloadClients();
+              void reload();
+              setAtRiskRefreshKey((value) => value + 1);
+            }}
+          />
+          <AtRiskPanel
+            onCountChange={setAtRiskCount}
+            refreshKey={atRiskRefreshKey}
+          />
         </aside>
       </main>
 
@@ -330,6 +364,9 @@ export function AppointmentsPage() {
             await editAppointment(editingAppointment.id, payload);
           } else {
             await addAppointment(payload);
+          }
+          if (payload.status === "no_show") {
+            setAtRiskRefreshKey((value) => value + 1);
           }
         }}
       />

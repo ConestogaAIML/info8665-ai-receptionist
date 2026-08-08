@@ -29,10 +29,20 @@ export async function apiFetch<T>(
 
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);
-    throw new ApiError(res.status, text);
+    throw new ApiError(res.status, formatApiErrorMessage(text));
   }
 
   return res.json() as Promise<T>;
+}
+
+function formatApiErrorMessage(text: string): string {
+  try {
+    const parsed = JSON.parse(text) as { detail?: unknown };
+    if (typeof parsed.detail === "string") return parsed.detail;
+  } catch {
+    /* keep raw text */
+  }
+  return text;
 }
 
 export async function apiFetchVoid(
@@ -54,6 +64,6 @@ export async function apiFetchVoid(
 
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);
-    throw new ApiError(res.status, text);
+    throw new ApiError(res.status, formatApiErrorMessage(text));
   }
 }

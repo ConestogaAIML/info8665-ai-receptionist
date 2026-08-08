@@ -26,6 +26,7 @@ export function AppointmentFilters({
           <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
           <TabsTrigger value="completed">Completed</TabsTrigger>
           <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+          <TabsTrigger value="no_show">Skipped</TabsTrigger>
         </TabsList>
       </Tabs>
 

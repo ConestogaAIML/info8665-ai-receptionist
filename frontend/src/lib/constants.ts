@@ -20,7 +20,12 @@ export const CATEGORY_COLORS: Record<FaqCategory, string> = {
 
 export const CONFIDENCE_THRESHOLD = 0.4;
 
-export const APPOINTMENT_STATUSES = ["scheduled", "completed", "cancelled"] as const;
+export const APPOINTMENT_STATUSES = [
+  "scheduled",
+  "completed",
+  "cancelled",
+  "no_show",
+] as const;
 
 export const STATUS_STYLES: Record<
   (typeof APPOINTMENT_STATUSES)[number],
@@ -40,6 +45,11 @@ export const STATUS_STYLES: Record<
     badge: "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200",
     dot: "bg-rose-500",
     label: "Cancelled",
+  },
+  no_show: {
+    badge: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200",
+    dot: "bg-amber-500",
+    label: "Skipped / No-show",
   },
 };
 

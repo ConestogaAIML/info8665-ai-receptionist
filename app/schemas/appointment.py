@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel, field_validator
 
-VALID_STATUSES = {"scheduled", "completed", "cancelled"}
+VALID_STATUSES = {"scheduled", "completed", "cancelled", "no_show"}
 
 
 class AppointmentCreate(BaseModel):

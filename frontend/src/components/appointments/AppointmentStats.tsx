@@ -3,6 +3,7 @@ import {
   CalendarClockIcon,
   CalendarXIcon,
   SparklesIcon,
+  UserXIcon,
 } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,6 +38,13 @@ const STAT_ITEMS = [
     iconBg: "bg-emerald-500/15 text-emerald-600",
   },
   {
+    key: "no_show",
+    label: "Skipped",
+    icon: UserXIcon,
+    accent: "from-amber-500/15 to-amber-500/5 text-amber-800 dark:text-amber-300",
+    iconBg: "bg-amber-500/15 text-amber-700",
+  },
+  {
     key: "at-risk",
     label: "At Risk",
     icon: CalendarXIcon,
@@ -50,11 +58,12 @@ export function AppointmentStats({ appointments, atRiskCount }: AppointmentStats
     total: appointments.length,
     scheduled: appointments.filter((a) => a.status === "scheduled").length,
     completed: appointments.filter((a) => a.status === "completed").length,
+    no_show: appointments.filter((a) => a.status === "no_show").length,
     "at-risk": atRiskCount,
   };
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
       {STAT_ITEMS.map((item) => {
         const Icon = item.icon;
         return (

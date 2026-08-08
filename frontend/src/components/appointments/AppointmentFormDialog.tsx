@@ -242,6 +242,7 @@ export function AppointmentFormDialog({
                 <SelectItem value="scheduled">Scheduled</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="no_show">Skipped / No-show</SelectItem>
               </SelectContent>
             </Select>
           </div>

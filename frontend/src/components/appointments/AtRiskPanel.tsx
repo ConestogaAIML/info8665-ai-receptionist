@@ -1,54 +1,66 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { AlertTriangleIcon, LoaderCircleIcon } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { AlertTriangleIcon, LoaderCircleIcon, RefreshCwIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { listAtRiskAppointments } from "@/lib/api/appointmentPrediction";
 import type { AtRiskAppointment } from "@/lib/types";
 
-export function AtRiskPanel({ onCountChange }: { onCountChange?: (count: number) => void }) {
+type AtRiskPanelProps = {
+  onCountChange?: (count: number) => void;
+  refreshKey?: number;
+};
+
+export function AtRiskPanel({ onCountChange, refreshKey = 0 }: AtRiskPanelProps) {
   const [items, setItems] = useState<AtRiskAppointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const data = await listAtRiskAppointments();
-        if (!cancelled) {
-          setItems(data.results);
-          onCountChange?.(data.count);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load at-risk clients");
-        }
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await listAtRiskAppointments();
+      setItems(data.results);
+      onCountChange?.(data.count);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load at-risk clients");
+      onCountChange?.(0);
+    } finally {
+      setIsLoading(false);
     }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
   }, [onCountChange]);
+
+  useEffect(() => {
+    void load();
+  }, [load, refreshKey]);
 
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <div className="flex size-9 items-center justify-center rounded-xl bg-rose-500/15 text-rose-600">
-            <AlertTriangleIcon className="size-4" />
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-rose-500/15 text-rose-600">
+              <AlertTriangleIcon className="size-4" />
+            </div>
+            <div>
+              <CardTitle>At-Risk Clients</CardTitle>
+              <CardDescription>
+                High profile risk from saved assessments (new + returning)
+              </CardDescription>
+            </div>
           </div>
-          <div>
-            <CardTitle>At-Risk Clients</CardTitle>
-            <CardDescription>High no-show probability from ML model</CardDescription>
-          </div>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={() => void load()}
+            aria-label="Refresh at-risk list"
+          >
+            <RefreshCwIcon className="size-4" />
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
@@ -57,26 +69,35 @@ export function AtRiskPanel({ onCountChange }: { onCountChange?: (count: number)
             <LoaderCircleIcon className="size-5 animate-spin" />
           </div>
         ) : error ? (
-          <p className="text-sm text-destructive">{error}</p>
+          <div className="space-y-3">
+            <p className="text-sm text-destructive">{error}</p>
+            <Button variant="outline" size="sm" onClick={() => void load()}>
+              Retry
+            </Button>
+          </div>
         ) : items.length === 0 ? (
           <p className="rounded-lg bg-muted/50 px-3 py-4 text-sm text-muted-foreground">
-            No high-risk clients detected right now.
+            No high-risk clients yet. Run Slot Advisor and save a customer assessment.
           </p>
         ) : (
           <div className="space-y-2">
-            {items.slice(0, 5).map((item) => (
+            {items.slice(0, 8).map((item) => (
               <div
-                key={item.customer_id}
+                key={item.assessment_id}
                 className="flex items-center justify-between rounded-lg border px-3 py-2.5"
               >
                 <div>
-                  <p className="text-sm font-medium">Customer #{item.customer_id}</p>
+                  <p className="text-sm font-medium">{item.client_name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {item.requires_confirmation ? "Confirmation recommended" : "Monitor closely"}
+                    {item.reason ??
+                      (item.is_new_customer ? "New customer" : "Returning")}
+                    {item.customer_id ? ` · #${item.customer_id}` : ""}
+                    {" · "}
+                    {item.requires_confirmation ? "Confirmation recommended" : "Monitor"}
                   </p>
                 </div>
                 <Badge variant="destructive">
-                  {Math.round(item.no_show_risk * 100)}% risk
+                  {Math.round(item.profile_risk * 100)}% risk
                 </Badge>
               </div>
             ))}

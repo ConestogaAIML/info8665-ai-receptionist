@@ -4,6 +4,7 @@ from app.auth import verify_token
 from app.database import get_db
 from app.models.appointment import Appointment
 from app.models.client import Client
+from app.models.risk_assessment import RiskAssessment
 from app.models.service import Service
 from app.schemas.appointment import (
     AppointmentCreate,
@@ -11,8 +12,15 @@ from app.schemas.appointment import (
     AppointmentResponse,
     AppointmentUpdate,
 )
+from app.services.appointment_booking_rules import assert_client_rebookable
+from app.services.appointment_prediction_service import record_no_show_risk
 
 router = APIRouter(prefix="/api/appointments", tags=["Appointments"])
+
+
+def _is_new_booking(status: str) -> bool:
+    """Only real scheduled bookings are gated by the skip cooldown."""
+    return status == "scheduled"
 
 
 def _to_response(appt: Appointment) -> dict:
@@ -74,6 +82,8 @@ def create_appointment(
         raise HTTPException(status_code=404, detail="Client not found")
     if not db.query(Service).filter(Service.id == payload.service_id).first():
         raise HTTPException(status_code=404, detail="Service not found")
+    if _is_new_booking(payload.status):
+        assert_client_rebookable(db, payload.client_id)
     appt = Appointment(
         client_id=payload.client_id,
         service_id=payload.service_id,
@@ -84,6 +94,8 @@ def create_appointment(
     )
     db.add(appt)
     db.commit()
+    if payload.status == "no_show":
+        record_no_show_risk(db, appt.client_id)
     appt = _load(db, appt.id)
     return AppointmentResponse.model_validate(_to_response(appt))
 
@@ -116,6 +128,14 @@ def update_appointment(
     if payload.service_id != appt.service_id:
         if not db.query(Service).filter(Service.id == payload.service_id).first():
             raise HTTPException(status_code=404, detail="Service not found")
+
+    # Block converting/assigning into a new scheduled booking during cooldown.
+    becoming_scheduled = _is_new_booking(payload.status) and (
+        appt.status != "scheduled" or payload.client_id != appt.client_id
+    )
+    if becoming_scheduled:
+        assert_client_rebookable(db, payload.client_id)
+
     appt.client_id = payload.client_id
     appt.service_id = payload.service_id
     appt.appointment_date = payload.appointment_date
@@ -123,6 +143,8 @@ def update_appointment(
     appt.status = payload.status
     appt.notes = payload.notes
     db.commit()
+    if payload.status == "no_show":
+        record_no_show_risk(db, appt.client_id)
     appt = _load(db, appointment_id)
     return AppointmentResponse.model_validate(_to_response(appt))
 
