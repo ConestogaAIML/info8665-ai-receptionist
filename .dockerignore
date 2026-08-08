@@ -11,7 +11,9 @@ logs
 .env.*
 !.env.example
 data/receptionist.db
-data/raw
 frontend/node_modules
 frontend/.next
 frontend/.env.local
+docs/*.png
+**/__pycache__
+**/.DS_Store

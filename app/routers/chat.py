@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import verify_token
 from app.database import get_db
+from app.logging_config import configure_application_logging
 from app.models.business import Business
 from app.models.faq import BusinessFAQ
 from app.schemas.chat import ChatRequest, ChatResponse
@@ -14,6 +15,8 @@ router = APIRouter(
     prefix="/api/businesses/{business_id}/chat",
     tags=["FAQ Chatbot"],
 )
+
+logger = configure_application_logging()
 
 CONFIDENCE_THRESHOLD = 0.40
 FALLBACK_MESSAGE = (
@@ -46,10 +49,16 @@ def chat(
     db: Session = Depends(get_db),
     _: dict = Depends(verify_token),
 ):
+    logger.info("API START POST /api/businesses/%s/chat/", business_id)
     _get_business_or_404(business_id, db)
     category, confidence = faq_classifier.predict(payload.message)
-    print(f"Category: {category}, Confidence: {confidence}")
+    logger.info(
+        "FAQ chat prediction category=%s confidence=%.3f",
+        category,
+        confidence,
+    )
     if category is None or confidence < CONFIDENCE_THRESHOLD:
+        logger.info("API END POST /api/businesses/%s/chat/ fallback=true", business_id)
         return ChatResponse(
             answer=FALLBACK_MESSAGE,
             matched_question=None,
@@ -69,6 +78,7 @@ def chat(
     )
 
     if not faqs:
+        logger.info("API END POST /api/businesses/%s/chat/ fallback=true", business_id)
         return ChatResponse(
             answer=FALLBACK_MESSAGE,
             matched_question=None,
@@ -78,6 +88,12 @@ def chat(
         )
 
     best_faq = _best_matching_faq(payload.message, faqs)
+    logger.info(
+        "API END POST /api/businesses/%s/chat/ category=%s matched=%s",
+        business_id,
+        category,
+        best_faq.question,
+    )
     return ChatResponse(
         answer=best_faq.answer,
         matched_question=best_faq.question,

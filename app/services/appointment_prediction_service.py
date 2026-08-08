@@ -58,6 +58,13 @@ def _get_model():
     return _model
 
 
+def reset_model_cache() -> None:
+    """Clear cached no-show model so the next prediction reloads from disk."""
+    global _model
+    _model = None
+    logger.info("No-show model cache cleared")
+
+
 def predict_no_show(age, waiting_days, weekday, hour, sms_received):
     prediction = _get_model().predict_proba(
         [[age, waiting_days, weekday, hour, sms_received]]

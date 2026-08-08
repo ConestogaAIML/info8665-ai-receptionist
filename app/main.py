@@ -14,6 +14,7 @@ from app.routers import (
     clients,
     dev_seed,
     faq,
+    ml_pipelines,
     services,
 )
 
@@ -51,8 +52,8 @@ app.state.logger = logger
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
@@ -66,6 +67,7 @@ app.include_router(clients.router)
 app.include_router(dev_seed.router)
 app.include_router(appointment_prediction.router)
 app.include_router(appointments.router)
+app.include_router(ml_pipelines.router)
 
 
 def custom_openapi():
