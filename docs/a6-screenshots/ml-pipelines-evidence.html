@@ -1,0 +1,69 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/>
+<title>AI Receptionist — Local Evidence</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;margin:24px;background:#f8fafc;color:#111}
+h1{margin:0 0 4px;font-size:28px}
+.sub{color:#475569;margin-bottom:18px}
+.card{background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.ok{display:inline-block;background:#16a34a;color:#fff;padding:2px 8px;border-radius:999px;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border-bottom:1px solid #e2e8f0;padding:6px 4px;text-align:left;vertical-align:top}
+th{font-size:12px;color:#334155}
+.method{font-weight:700;color:#0f766e}
+.badge{background:#e2e8f0;border-radius:6px;padding:1px 6px;font-size:11px}
+code{background:#f1f5f9;padding:1px 4px;border-radius:4px}
+</style></head><body>
+<div class="card">
+  <h1>AI Receptionist</h1>
+  <div class="sub">Local Docker run evidence · API AI Receptionist is running. Visit /docs for the API.</div>
+  <span class="ok">RUNNING</span>
+  <div style="margin-top:10px;font-size:13px">
+    UI <code>http://localhost:3000</code> ·
+    API/Swagger <code>http://localhost:8000/docs</code> ·
+    Streamlit <code>http://localhost:8501</code><br/>
+    Bind address: <b>0.0.0.0</b> (uvicorn + Streamlit + Next HOSTNAME) for remote host visibility<br/>
+    Dockerfile present in repo root · Image: <code>preeja73/ai-receptionist:latest</code>
+  </div>
+</div>
+<div class="card">
+  <h2 style="margin:0 0 8px;font-size:18px">ML Ops Pipelines — FAQ Use Case (≥6 contracts)</h2>
+  <table><tr><th>Method</th><th>Endpoint</th><th>Summary</th></tr>
+  <tr><td class="method">POST</td><td><code>/api/ml/faq/collect</code></td><td>FAQ data collection pipeline</td></tr><tr><td class="method">GET</td><td><code>/api/ml/faq/eda</code></td><td>FAQ exploratory data analysis pipeline</td></tr><tr><td class="method">POST</td><td><code>/api/ml/faq/preprocess</code></td><td>FAQ preprocessing pipeline</td></tr><tr><td class="method">POST</td><td><code>/api/ml/faq/reload</code></td><td>Reload FAQ model into serving cache</td></tr><tr><td class="method">POST</td><td><code>/api/ml/faq/train</code></td><td>FAQ model training pipeline</td></tr><tr><td class="method">POST</td><td><code>/api/ml/faq/validate</code></td><td>FAQ model validation pipeline</td></tr>
+  <tr><td class="method">POST</td><td><code>/api/businesses/{id}/chat/</code></td><td>Serve/integration — FAQ chatbot</td></tr>
+  </table>
+</div>
+<div class="card">
+  <h2 style="margin:0 0 8px;font-size:18px">ML Ops Pipelines — Appointment No-Show (≥6 contracts)</h2>
+  <table><tr><th>Method</th><th>Endpoint</th><th>Summary</th></tr>
+  <tr><td class="method">GET</td><td><code>/api/ml/appointments/eda</code></td><td>Appointment EDA summary from secrets + data</td></tr><tr><td class="method">POST</td><td><code>/api/ml/appointments/preprocess</code></td><td>Appointment preprocess + EDA pipeline</td></tr><tr><td class="method">POST</td><td><code>/api/ml/appointments/reload</code></td><td>Reload no-show model into serving cache</td></tr><tr><td class="method">POST</td><td><code>/api/ml/appointments/run-full</code></td><td>Run preprocess → train → validate for appointments</td></tr><tr><td class="method">POST</td><td><code>/api/ml/appointments/train</code></td><td>Appointment no-show training pipeline</td></tr><tr><td class="method">POST</td><td><code>/api/ml/appointments/validate</code></td><td>Appointment model validation pipeline</td></tr>
+  <tr><td class="method">POST</td><td><code>/api/appointments/predict</code></td><td>Serve — no-show risk / slot advisor</td></tr>
+  </table>
+</div>
+<div class="card">
+  <h2 style="margin:0 0 8px;font-size:18px">Secrets Management (GET /config/public)</h2>
+  <pre style="font-size:12px;white-space:pre-wrap">{
+  "db_engine": "sqlite",
+  "db_hostname": "localhost",
+  "db_port": 5432,
+  "db_name": "ai_receptionist",
+  "feature_names": [
+    "Age",
+    "WaitingDays",
+    "AppointmentWeekday",
+    "AppointmentHour",
+    "SMS_received"
+  ],
+  "target_column": "No-show",
+  "ml_n_estimators": 100,
+  "ml_max_depth": null,
+  "ml_epochs": 3,
+  "ml_random_state": 42,
+  "ml_test_size": 0.2,
+  "expected_accuracy": 0.75,
+  "experiment_name": "appointment-no-show",
+  "experiment_version": "1.0.0"
+}</pre>
+</div>
+<p style="font-size:12px;color:#64748b">SOA Service Contracts: docs/soa-service-contracts.md · PR #19</p>
+</body></html>
