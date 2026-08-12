@@ -65,6 +65,22 @@ info8665-ai-receptionist/
 - Node.js 18+
 - Docker Desktop (for containerised run)
 
+### Sync the latest team changes
+
+Use this before running the project so your local folder matches the team branch:
+
+```bash
+git fetch --all --prune
+git switch feat/assignment6-mlops-pipelines
+git pull --ff-only
+```
+
+To update local `main` as well:
+
+```bash
+git fetch origin main:main
+```
+
 ### Run the backend
 
 ```bash
@@ -138,6 +154,22 @@ docker compose logs -f          # stream logs
 On startup the API container automatically seeds sample businesses, FAQs, clients, services, and one appointment.
 
 The SQLite database is stored in a named Docker volume (`sqlite-data`) and persists across restarts.
+
+### Run tests
+
+After installing Python dependencies locally:
+
+```bash
+python -m pytest -q
+```
+
+After building the Docker image:
+
+```bash
+docker compose exec api python -m pytest -q
+```
+
+The Docker image includes the `tests/` directory, so the same test command works inside the running container.
 
 ### Publish to Docker Hub
 

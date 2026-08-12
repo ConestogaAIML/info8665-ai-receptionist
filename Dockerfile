@@ -31,7 +31,10 @@ COPY scripts/ ./scripts/
 COPY training/ ./training/
 COPY data-collection/ ./data-collection/
 COPY ml-assets/ ./ml-assets/
+COPY tests/ ./tests/
 COPY streamlit_app.py .
+COPY Dockerfile ./Dockerfile
+COPY .dockerignore ./.dockerignore
 COPY .env.example ./.env.example
 
 COPY --from=frontend-builder /frontend/public ./frontend/public
