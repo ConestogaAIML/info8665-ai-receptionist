@@ -28,16 +28,26 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ ./app/
 COPY dev/ ./dev/
 COPY scripts/ ./scripts/
-COPY training/faq_classifier.joblib ./training/faq_classifier.joblib
+COPY training/ ./training/
+COPY data-collection/ ./data-collection/
+COPY ml-assets/ ./ml-assets/
+COPY tests/ ./tests/
 COPY streamlit_app.py .
+COPY Dockerfile ./Dockerfile
+COPY .dockerignore ./.dockerignore
 COPY .env.example ./.env.example
 
 COPY --from=frontend-builder /frontend/public ./frontend/public
 COPY --from=frontend-builder /frontend/.next/standalone ./frontend/
 COPY --from=frontend-builder /frontend/.next/static ./frontend/.next/static
 
-RUN mkdir -p /data /app/logs /app/data/model /app/data/processed \
-    && chmod +x /app/scripts/start.sh
+# Seed ML paths from tracked assets (data/ is gitignored; CI-safe)
+RUN mkdir -p /data /app/logs /app/data/model /app/data/processed /app/data/raw \
+    && cp /app/ml-assets/appointments.csv /app/data/raw/appointments.csv \
+    && cp /app/ml-assets/processed_appointments.csv /app/data/processed/processed_appointments.csv \
+    && chmod +x /app/scripts/start.sh \
+    && ML_EPOCHS=1 ML_N_ESTIMATORS=50 \
+       python -c "from app.services.train_model import train_no_show_model; print(train_no_show_model())"
 
 EXPOSE 8000
 EXPOSE 8501

@@ -1,5 +1,5 @@
 # Docker
-# Build a Docker image
+# Build image for Assignment 6 (CI/CD and ML Ops Pipelines)
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
 trigger:
@@ -9,12 +9,12 @@ resources:
 - repo: self
 
 variables:
-  imageName: 'ai-receptionist-assignment5'
+  imageName: 'ai-receptionist-assignment6'
   tag: '$(Build.BuildId)'
 
 stages:
 - stage: Build
-  displayName: Build image
+  displayName: Build ML Ops image
   jobs:
   - job: Build
     displayName: Build
@@ -22,8 +22,23 @@ stages:
       vmImage: ubuntu-latest
     steps:
     - task: PowerShell@2
-      displayName: Build an image
+      displayName: Build Docker image
       inputs:
         targetType: inline
         script: |
           docker build -t $(imageName):$(tag) .
+    - task: PowerShell@2
+      displayName: Smoke-test container health endpoint
+      inputs:
+        targetType: inline
+        script: |
+          docker run -d --name a6-smoke -p 8000:8000 $(imageName):$(tag)
+          Start-Sleep -Seconds 25
+          try {
+            $response = Invoke-WebRequest -Uri http://127.0.0.1:8000/ -UseBasicParsing
+            if ($response.StatusCode -ne 200) { throw "Unexpected status $($response.StatusCode)" }
+            Write-Host "Smoke test passed: $($response.Content)"
+          }
+          finally {
+            docker rm -f a6-smoke | Out-Null
+          }

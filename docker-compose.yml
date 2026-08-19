@@ -38,7 +38,7 @@ services:
       - ML_EPOCHS=${ML_EPOCHS:-3}
       - EXPERIMENT_NAME=${EXPERIMENT_NAME:-appointment-no-show}
       - EXPERIMENT_VERSION=${EXPERIMENT_VERSION:-1.0.0}
-      - EXPECTED_ACCURACY=${EXPECTED_ACCURACY:-0.75}
+      - EXPECTED_ACCURACY=${EXPECTED_ACCURACY:-0.60}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]

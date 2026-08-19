@@ -65,6 +65,22 @@ info8665-ai-receptionist/
 - Node.js 18+
 - Docker Desktop (for containerised run)
 
+### Sync the latest team changes
+
+Use this before running the project so your local folder matches the team branch:
+
+```bash
+git fetch --all --prune
+git switch feat/assignment6-mlops-pipelines
+git pull --ff-only
+```
+
+To update local `main` as well:
+
+```bash
+git fetch origin main:main
+```
+
 ### Run the backend
 
 ```bash
@@ -138,6 +154,22 @@ docker compose logs -f          # stream logs
 On startup the API container automatically seeds sample businesses, FAQs, clients, services, and one appointment.
 
 The SQLite database is stored in a named Docker volume (`sqlite-data`) and persists across restarts.
+
+### Run tests
+
+After installing Python dependencies locally:
+
+```bash
+python -m pytest -q
+```
+
+After building the Docker image:
+
+```bash
+docker compose exec api python -m pytest -q
+```
+
+The Docker image includes the `tests/` directory, so the same test command works inside the running container.
 
 ### Publish to Docker Hub
 
@@ -322,6 +354,63 @@ python training/train_faq_classifier.py data-collection/faq_training_combined.cs
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 0.6.0 | 2026-08-08 | Assignment 6: ML Ops pipeline APIs, SOA contracts, Docker ML assets |
 | 0.2.0 | 2026-06-15 | Next.js chat UI with shadcn/ui, auth gate, business selector, confidence/category metadata |
 | 0.1.1 | 2026-06-15 | TF-IDF FAQ chatbot classifier and `/chat/` endpoint |
 | 0.1.0 | 2026-06-08 | FAQ Knowledge Base CRUD, JWT auth, Docker Compose, SQLite |
+
+---
+
+## Assignment 6 — CI/CD and ML Ops Pipelines
+
+### ML Ops pipeline APIs (JWT required)
+
+Both ML use cases expose pipeline stages as HTTP services (see `docs/soa-service-contracts.md`).
+
+**FAQ chatbot**
+
+| Stage | Endpoint |
+|-------|----------|
+| Collect | `POST /api/ml/faq/collect` |
+| EDA | `GET /api/ml/faq/eda` |
+| Preprocess | `POST /api/ml/faq/preprocess` |
+| Train | `POST /api/ml/faq/train` |
+| Validate | `POST /api/ml/faq/validate` |
+| Reload | `POST /api/ml/faq/reload` |
+| Serve | `POST /api/businesses/{id}/chat/` |
+
+**Appointment no-show**
+
+| Stage | Endpoint |
+|-------|----------|
+| Preprocess | `POST /api/ml/appointments/preprocess` |
+| EDA | `GET /api/ml/appointments/eda` |
+| Train | `POST /api/ml/appointments/train` |
+| Validate | `POST /api/ml/appointments/validate` |
+| Reload | `POST /api/ml/appointments/reload` |
+| Full pipeline | `POST /api/ml/appointments/run-full` |
+| Serve | `POST /api/appointments/predict` |
+
+### Docker (full stack)
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+- UI: http://localhost:3000  
+- API / Swagger: http://localhost:8000/docs  
+- Streamlit logs & secrets: http://localhost:8501  
+
+### Publish to Docker Hub
+
+```bash
+docker build -t <DOCKERHUB_USER>/ai-receptionist:latest .
+docker login
+docker push <DOCKERHUB_USER>/ai-receptionist:latest
+```
+
+### Documentation
+
+- SOA contracts: [`docs/soa-service-contracts.md`](docs/soa-service-contracts.md)
+- Submission checklist: [`docs/assignment6-submission-checklist.md`](docs/assignment6-submission-checklist.md)
