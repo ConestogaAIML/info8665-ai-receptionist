@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
-from jose import JWTError, jwt
+import jwt
+from jwt import PyJWTError
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -35,7 +36,7 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_sche
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except JWTError:
+    except PyJWTError:
         logger.warning("Invalid or expired JWT presented to API")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

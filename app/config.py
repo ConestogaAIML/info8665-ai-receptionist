@@ -126,7 +126,7 @@ def get_settings() -> Settings:
         db_name=_get("DB_NAME", "ai_receptionist"),
         db_engine=_get("DB_ENGINE", "sqlite"),
         sqlite_db_path=_get("SQLITE_DB_PATH", "./data/receptionist.db"),
-        jwt_secret_key=_get("JWT_SECRET_KEY", "dev-secret-change-in-production"),
+        jwt_secret_key=_get("JWT_SECRET_KEY", "dev-secret-change-in-production-32bytes"),
         log_file_path=_get("LOG_FILE_PATH", "logs/app.log"),
         api_base_url=_get("API_BASE_URL", "http://127.0.0.1:8000"),
         log_level=_get("LOG_LEVEL", "INFO"),
